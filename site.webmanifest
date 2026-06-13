@@ -1,0 +1,26 @@
+{
+  "name": "ABC FC Store | Official Kit & Merchandise",
+  "short_name": "ABC FC Store",
+  "description": "Official ABC FC merchandise — kits, training wear and accessories. Lion of the North.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0d0d0d",
+  "theme_color": "#F5A800",
+  "orientation": "portrait-primary",
+  "lang": "en-ZA",
+  "categories": ["shopping", "sports"],
+  "icons": [
+    {
+      "src": "images/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "images/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
