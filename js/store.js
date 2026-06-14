@@ -501,6 +501,191 @@ function showCat(cat) {
   renderProducts();
 }
 
+// ── Info / Policy Pages ────────────────────────────────────
+const INFO = {
+  shipping: {
+    title: 'Shipping & Delivery',
+    html: `
+      <p>We deliver across South Africa via courier. Orders are dispatched within 1–2 business days once payment is confirmed (for EFT, once funds reflect).</p>
+      <h2>Delivery Times</h2>
+      <ul>
+        <li>Nationwide courier: <strong>3–5 business days</strong> after dispatch.</li>
+        <li>Remote areas may take slightly longer.</li>
+      </ul>
+      <h2>Delivery Fees</h2>
+      <ul>
+        <li><strong>FREE</strong> on orders over <strong>R500</strong>.</li>
+        <li>Flat <strong>R99</strong> on orders under R500.</li>
+        <li><strong>Cash on Delivery</strong> is available within Limpopo only.</li>
+      </ul>
+      <p>You'll receive your invoice by email when you order, and we'll be in touch with tracking details once your parcel is on its way.</p>`,
+  },
+  returns: {
+    title: 'Returns & Exchanges',
+    html: `
+      <p>We want you to love your ABC FC gear. If something isn't right, you can return it within <strong>7 days</strong> of delivery.</p>
+      <h2>What can be returned</h2>
+      <ul>
+        <li>Unused, unworn and unwashed items in their original packaging with tags attached.</li>
+      </ul>
+      <h2>What cannot be returned</h2>
+      <ul>
+        <li>Items that have been worn, washed or damaged after delivery.</li>
+        <li>Personalised or custom-printed items.</li>
+      </ul>
+      <h2>How to return</h2>
+      <ol>
+        <li>Email or WhatsApp us with your order number and the reason for the return.</li>
+        <li>We'll confirm the return and how to send the item back.</li>
+        <li>Once we receive and inspect the item, we'll process your exchange or refund.</li>
+      </ol>
+      <p>Return shipping is the customer's responsibility unless the item is faulty or incorrect, in which case we'll cover it. This policy is in addition to your rights under the Consumer Protection Act.</p>`,
+  },
+  sizing: {
+    title: 'Sizing Guide',
+    html: `
+      <p>All measurements are approximate. If you're between sizes, we recommend sizing up. Not sure? Message us before ordering and we'll help.</p>
+      <h2>Adult Jerseys (chest)</h2>
+      <table>
+        <thead><tr><th>Size</th><th>Chest (cm)</th></tr></thead>
+        <tbody>
+          <tr><td>XS</td><td>86–91</td></tr>
+          <tr><td>S</td><td>91–97</td></tr>
+          <tr><td>M</td><td>97–102</td></tr>
+          <tr><td>L</td><td>102–107</td></tr>
+          <tr><td>XL</td><td>107–112</td></tr>
+          <tr><td>XXL</td><td>112–117</td></tr>
+        </tbody>
+      </table>
+      <h2>Kids</h2>
+      <p>Kids' kits are sized by age range: 4–6, 6–8, 8–10, 10–12 and 12–14 years.</p>
+      <h2>Accessories</h2>
+      <p>Scarves, caps and bags are one size fits all.</p>`,
+  },
+  faq: {
+    title: 'Frequently Asked Questions',
+    html: `
+      <h2>How can I pay?</h2>
+      <p>EFT / bank transfer and Cash on Delivery (Limpopo only) are available now. Card payments via PayFast are coming soon.</p>
+      <h2>When do I get the EFT banking details?</h2>
+      <p>They're emailed to you with your invoice as soon as you place an EFT order. Use your order number as the payment reference.</p>
+      <h2>How long does delivery take?</h2>
+      <p>Around 3–5 business days nationwide after dispatch. See our Shipping & Delivery page for details.</p>
+      <h2>Can I track my order?</h2>
+      <p>Yes — use the Track Order page with your order number, or contact us and we'll update you.</p>
+      <h2>What's your returns policy?</h2>
+      <p>Unused items can be returned within 7 days. See the Returns & Exchanges page.</p>
+      <h2>How do I choose the right size?</h2>
+      <p>Check our Sizing Guide. If you're between sizes, size up or message us first.</p>`,
+  },
+  privacy: {
+    title: 'Privacy Policy',
+    html: `
+      <p>ABC FC Foundation (NPC) respects your privacy and handles your information in line with South Africa's Protection of Personal Information Act (POPIA).</p>
+      <h2>What we collect</h2>
+      <ul>
+        <li>Your name, email, phone number and delivery address.</li>
+        <li>Order details (items, sizes, amounts).</li>
+      </ul>
+      <h2>Why we collect it</h2>
+      <ul>
+        <li>To process, fulfil and deliver your orders.</li>
+        <li>To email your invoice and provide customer support.</li>
+      </ul>
+      <h2>How it's handled</h2>
+      <ul>
+        <li>We do not sell your personal information.</li>
+        <li>Order records are retained only as long as needed to support your order.</li>
+        <li>Your shopping cart is stored locally in your own browser, not on our servers.</li>
+      </ul>
+      <h2>Your rights</h2>
+      <p>You may request access to, correction of, or deletion of your personal information at any time by contacting us.</p>`,
+  },
+  terms: {
+    title: 'Terms & Conditions',
+    html: `
+      <p>This store is operated by ABC FC Foundation (NPC), Thohoyandou, Limpopo, South Africa. By placing an order you agree to these terms.</p>
+      <h2>Orders & Pricing</h2>
+      <ul>
+        <li>All prices are in South African Rand (ZAR) and may change without notice.</li>
+        <li>Orders are subject to acceptance and stock availability. If an item is unavailable we'll contact you to arrange a refund or alternative.</li>
+      </ul>
+      <h2>Payment</h2>
+      <ul>
+        <li>EFT orders are dispatched once payment reflects in our account.</li>
+        <li>Please use your order number as the payment reference.</li>
+      </ul>
+      <h2>Delivery & Risk</h2>
+      <p>Delivery timeframes are estimates. Risk in the goods passes to you on delivery.</p>
+      <h2>Returns</h2>
+      <p>Returns are handled per our Returns & Exchanges policy and your rights under the Consumer Protection Act.</p>
+      <h2>Governing Law</h2>
+      <p>These terms are governed by the laws of South Africa.</p>`,
+  },
+  track: {
+    title: 'Track Your Order',
+    html: `
+      <p>Enter the order number from your confirmation email (for example, <strong>ABC-123456</strong>).</p>
+      <div class="track-form">
+        <input type="text" id="track-input" placeholder="ABC-000000" autocomplete="off" />
+        <button class="place-order-btn" id="track-submit" style="width:auto;">Track</button>
+      </div>
+      <div class="track-result" id="track-result"></div>`,
+  },
+};
+
+function showInfo(topic) {
+  const data = INFO[topic];
+  if (!data) return;
+  const titleEl = document.getElementById('info-title');
+  const crumbEl = document.getElementById('info-crumb');
+  const bodyEl  = document.getElementById('info-content');
+  if (titleEl) titleEl.textContent = data.title;
+  if (crumbEl) crumbEl.textContent = data.title;
+  if (bodyEl)  bodyEl.innerHTML = data.html;
+
+  if (topic === 'track') wireTrackOrder();
+  showPage('info');
+}
+
+function wireTrackOrder() {
+  const input  = document.getElementById('track-input');
+  const btn    = document.getElementById('track-submit');
+  const result = document.getElementById('track-result');
+  if (!input || !btn || !result) return;
+
+  const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, m => (
+    { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[m]
+  ));
+
+  function lookup() {
+    const num = input.value.trim();
+    if (!num) { result.innerHTML = '<p style="color:var(--text-muted);">Please enter your order number.</p>'; return; }
+    result.innerHTML = '<p style="color:var(--text-muted);">Looking up your order…</p>';
+    fetch('/api/orders?orderNum=' + encodeURIComponent(num))
+      .then(r => r.ok ? r.json() : Promise.reject(r.status))
+      .then(order => {
+        const when = order.createdAt
+          ? new Date(order.createdAt).toLocaleDateString('en-ZA', { day:'2-digit', month:'long', year:'numeric' })
+          : '';
+        const itemCount = Array.isArray(order.items)
+          ? order.items.reduce((s, i) => s + (Number(i.qty) || 0), 0)
+          : 0;
+        result.innerHTML = `
+          <div style="background:var(--surface);border:1px solid rgba(245,168,0,0.2);border-radius:var(--radius-md);padding:16px;">
+            <p style="color:var(--gold);font-weight:700;margin:0 0 6px;">Order ${esc(order.orderNum || num)} found</p>
+            <p style="color:var(--text-muted);margin:0;">${when ? 'Placed ' + esc(when) + '. ' : ''}${itemCount} item(s). We've received your order and it's being processed. We'll be in touch with delivery updates.</p>
+          </div>`;
+      })
+      .catch(() => {
+        result.innerHTML = `<p style="color:var(--text-muted);">We couldn't find that order number. Please double-check it, or contact us at <a href="mailto:tshibalo.lucas@gmail.com" style="color:var(--gold);">tshibalo.lucas@gmail.com</a> / <a href="https://wa.me/27711092360" style="color:var(--gold);" target="_blank" rel="noopener">WhatsApp</a> and we'll help.</p>`;
+      });
+  }
+
+  btn.addEventListener('click', lookup);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') lookup(); });
+}
+
 // ── Checkout ───────────────────────────────────────────────
 function buildCheckoutPage() {
   // Render cart items in checkout summary
@@ -714,6 +899,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Back to shop
   document.getElementById('back-to-shop')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    showPage('shop');
+  });
+
+  // Info pages "Store" breadcrumb back link
+  document.getElementById('info-back')?.addEventListener('click', (e) => {
     e.preventDefault();
     showPage('shop');
   });

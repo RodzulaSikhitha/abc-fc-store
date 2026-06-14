@@ -372,7 +372,7 @@
         </button>
 
         <p style="text-align:center;font-size:12px;color:var(--text-faint);margin-top:-8px;">
-          By placing your order you agree to our <a href="#" style="color:var(--text-muted);">Terms &amp; Conditions</a>
+          By placing your order you agree to our <a href="#" onclick="showInfo('terms');return false;" style="color:var(--text-muted);">Terms &amp; Conditions</a>
         </p>
 
       </div>
@@ -399,6 +399,23 @@
         <a href="https://abcfc.co.za" style="font-size:13px;color:var(--text-muted);">← Back to ABC FC Official Site</a>
       </div>
     </div><!-- /page-confirm -->
+
+    <!-- ── INFO / POLICY PAGES ── -->
+    <div id="page-info" class="page-section">
+      <div class="breadcrumb">
+        <a href="#" id="info-back">Store</a>
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        <span id="info-crumb">Information</span>
+      </div>
+      <div class="info-wrap">
+        <h1 class="info-title" id="info-title">Information</h1>
+        <div class="info-content" id="info-content"></div>
+        <p class="info-contact-note">
+          Still need help? Email <a href="mailto:tshibalo.lucas@gmail.com">tshibalo.lucas@gmail.com</a>
+          or WhatsApp <a href="https://wa.me/27711092360" target="_blank" rel="noopener">+27 71 109 2360</a>.
+        </p>
+      </div>
+    </div><!-- /page-info -->
 
   </main>
 
@@ -533,17 +550,17 @@
         <h4>Support</h4>
         <ul>
           <li><a href="mailto:tshibalo.lucas@gmail.com">Contact Us</a></li>
-          <li><a href="#">Track Order</a></li>
-          <li><a href="#">Returns Policy</a></li>
-          <li><a href="#">Sizing Guide</a></li>
-          <li><a href="#">FAQs</a></li>
+          <li><a href="#" onclick="showInfo('track');return false;">Track Order</a></li>
+          <li><a href="#" onclick="showInfo('returns');return false;">Returns Policy</a></li>
+          <li><a href="#" onclick="showInfo('sizing');return false;">Sizing Guide</a></li>
+          <li><a href="#" onclick="showInfo('faq');return false;">FAQs</a></li>
         </ul>
       </div>
     </div>
     <div class="store-footer-bottom">
       <p>© <span id="footer-year"></span> ABC FC Foundation. All rights reserved.</p>
       <p>Registered Non-Profit Organisation · Thohoyandou, Limpopo, South Africa</p>
-      <p><a href="#">Privacy Policy</a> · <a href="#">Terms &amp; Conditions</a> · <a href="#">Shipping Policy</a></p>
+      <p><a href="#" onclick="showInfo('privacy');return false;">Privacy Policy</a> · <a href="#" onclick="showInfo('terms');return false;">Terms &amp; Conditions</a> · <a href="#" onclick="showInfo('shipping');return false;">Shipping Policy</a></p>
     </div>
   </footer>
 
