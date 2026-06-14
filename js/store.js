@@ -882,11 +882,11 @@ function closeSearch() {
 
 // ── Theme Toggle ───────────────────────────────────────────
 function initTheme() {
-  const saved = localStorage.getItem('abcfc_store_theme') || 'dark';
+  const saved = localStorage.getItem('abcfc_store_theme') || 'light';
   document.documentElement.setAttribute('data-theme', saved);
 }
 function toggleTheme() {
-  const current = document.documentElement.getAttribute('data-theme') || 'dark';
+  const current = document.documentElement.getAttribute('data-theme') || 'light';
   const next = current === 'dark' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', next);
   try { localStorage.setItem('abcfc_store_theme', next); } catch(e){}
