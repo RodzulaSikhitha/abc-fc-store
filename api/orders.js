@@ -7,32 +7,44 @@ const crypto = require('crypto');
 
 // ── PDF Invoice Generation (inline, no external deps) ─────
 function generateInvoiceHTML(order) {
-  const itemsRows = order.items.map(item => `
+  // Escape user-supplied values before embedding them in the invoice HTML
+  // to prevent HTML/link injection in the customer's (and BCC owner's) inbox.
+  const esc = (v) =>
+    String(v == null ? '' : v)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  const num = (v) => { const n = Number(v); return Number.isFinite(n) ? n : 0; };
+
+  const itemsRows = (order.items || []).map(item => `
     <tr>
-      <td style="padding:10px 12px;border-bottom:1px solid #2a2a2a;font-family:sans-serif;font-size:13px;color:#f0f0f0;">${item.name}</td>
-      <td style="padding:10px 12px;border-bottom:1px solid #2a2a2a;text-align:center;font-family:sans-serif;font-size:13px;color:#999;">${item.size}</td>
-      <td style="padding:10px 12px;border-bottom:1px solid #2a2a2a;text-align:center;font-family:sans-serif;font-size:13px;color:#999;">${item.qty}</td>
-      <td style="padding:10px 12px;border-bottom:1px solid #2a2a2a;text-align:right;font-family:sans-serif;font-size:13px;color:#F5A800;font-weight:bold;">R ${(item.price * item.qty).toFixed(2)}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid #2a2a2a;font-family:sans-serif;font-size:13px;color:#f0f0f0;">${esc(item.name)}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid #2a2a2a;text-align:center;font-family:sans-serif;font-size:13px;color:#999;">${esc(item.size)}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid #2a2a2a;text-align:center;font-family:sans-serif;font-size:13px;color:#999;">${num(item.qty)}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid #2a2a2a;text-align:right;font-family:sans-serif;font-size:13px;color:#F5A800;font-weight:bold;">R ${(num(item.price) * num(item.qty)).toFixed(2)}</td>
     </tr>
   `).join('');
 
-  const subtotal = order.subtotal || order.items.reduce((s, i) => s + i.price * i.qty, 0);
-  const delivery = order.delivery !== undefined ? order.delivery : 99;
-  const total    = order.total    || (subtotal + delivery);
+  const subtotal = num(order.subtotal) || (order.items || []).reduce((s, i) => s + num(i.price) * num(i.qty), 0);
+  const delivery = order.delivery !== undefined ? num(order.delivery) : 99;
+  const total    = num(order.total)    || (subtotal + delivery);
   const addr     = order.address  || {};
+  const orderNum = esc(order.orderNum);
 
   const paymentLabel = {
     eft:  'EFT / Bank Transfer',
     card: 'Credit / Debit Card',
     cash: 'Cash on Delivery',
-  }[order.payment] || order.payment || 'EFT';
+  }[order.payment] || esc(order.payment) || 'EFT';
 
   return `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>Invoice ${order.orderNum} - ABC FC Store</title>
+  <title>Invoice ${orderNum} - ABC FC Store</title>
 </head>
 <body style="background:#0d0d0d;margin:0;padding:20px;font-family:Arial,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#141414;border-radius:12px;overflow:hidden;border:1px solid #2a2a2a;">
@@ -54,7 +66,7 @@ function generateInvoiceHTML(order) {
             </td>
             <td style="text-align:right;">
               <p style="font-size:13px;font-weight:700;letter-spacing:0.06em;color:#F5A800;margin:0;text-transform:uppercase;">Order Number</p>
-              <p style="font-size:18px;font-weight:900;color:#f0f0f0;margin:4px 0 0;">${order.orderNum}</p>
+              <p style="font-size:18px;font-weight:900;color:#f0f0f0;margin:4px 0 0;">${orderNum}</p>
             </td>
           </tr>
         </table>
@@ -67,16 +79,16 @@ function generateInvoiceHTML(order) {
           <tr>
             <td style="width:50%;vertical-align:top;">
               <p style="font-size:11px;font-weight:700;letter-spacing:0.08em;color:#F5A800;margin:0 0 8px;text-transform:uppercase;">Billed To</p>
-              <p style="font-size:14px;color:#f0f0f0;margin:0 0 4px;font-weight:700;">${order.name}</p>
-              <p style="font-size:13px;color:#999;margin:0 0 2px;">${order.email}</p>
-              <p style="font-size:13px;color:#999;margin:0;">${order.phone || ''}</p>
+              <p style="font-size:14px;color:#f0f0f0;margin:0 0 4px;font-weight:700;">${esc(order.name)}</p>
+              <p style="font-size:13px;color:#999;margin:0 0 2px;">${esc(order.email)}</p>
+              <p style="font-size:13px;color:#999;margin:0;">${esc(order.phone)}</p>
             </td>
             <td style="width:50%;vertical-align:top;padding-left:16px;">
               <p style="font-size:11px;font-weight:700;letter-spacing:0.08em;color:#F5A800;margin:0 0 8px;text-transform:uppercase;">Ship To</p>
               <p style="font-size:13px;color:#999;margin:0;line-height:1.7;">
-                ${addr.line1 || ''}${addr.line2 ? '<br/>' + addr.line2 : ''}<br/>
-                ${addr.city || ''}, ${addr.postal || ''}<br/>
-                ${addr.province || ''}, South Africa
+                ${esc(addr.line1)}${addr.line2 ? '<br/>' + esc(addr.line2) : ''}<br/>
+                ${esc(addr.city)}, ${esc(addr.postal)}<br/>
+                ${esc(addr.province)}, South Africa
               </p>
             </td>
           </tr>
@@ -133,7 +145,7 @@ function generateInvoiceHTML(order) {
             <p style="font-size:13px;color:#ccc;margin:0;line-height:1.8;">
               Account Name: ABC FC Foundation<br/>
               Bank: To be confirmed by return email<br/>
-              Reference: <strong style="color:#F5A800;">${order.orderNum}</strong>
+              Reference: <strong style="color:#F5A800;">${orderNum}</strong>
             </p>
           </div>` : ''}
         </div>

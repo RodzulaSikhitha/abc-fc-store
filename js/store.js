@@ -175,7 +175,6 @@ let currentPage = 'shop';
 // ── SVG Placeholder Image Builder ─────────────────────────
 function buildPlaceholderSVG(product) {
   const c = encodeURIComponent(product.svgColor || '#222');
-  const name = encodeURIComponent(product.name.split(' ').slice(0,2).join('\n'));
   return `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'><rect width='400' height='400' fill='${c}'/><rect x='20' y='20' width='360' height='360' fill='none' stroke='rgba(245,168,0,0.3)' stroke-width='2' rx='8'/><text x='200' y='175' font-family='Arial' font-size='38' font-weight='bold' fill='%23F5A800' text-anchor='middle'>ABC</text><text x='200' y='225' font-family='Arial' font-size='22' fill='rgba(255,255,255,0.7)' text-anchor='middle'>FC</text><circle cx='200' cy='280' r='28' fill='none' stroke='rgba(245,168,0,0.5)' stroke-width='2'/><text x='200' y='287' font-family='Arial' font-size='13' fill='%23F5A800' text-anchor='middle'>🦁</text></svg>`;
 }
 
@@ -595,20 +594,26 @@ function placeOrder() {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(orderData),
   })
+  .then(r => r.ok ? r.json() : null)
   .catch(() => null) // Gracefully handle API not available
-  .finally(() => {
-    showConfirmPage(orderData);
-    btn.textContent = 'Place Order';
+  .then(result => {
+    showConfirmPage(orderData, result);
+    btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Place Order`;
     btn.disabled = false;
   });
 }
 
-function showConfirmPage(orderData) {
+function showConfirmPage(orderData, apiResult) {
   const numEl = document.getElementById('confirm-order-num');
   if (numEl) numEl.textContent = `Order ${orderData.orderNum}`;
 
+  // Only promise an invoice email if the server actually sent one.
   const emailNoteEl = document.getElementById('confirm-email-note');
-  if (emailNoteEl) emailNoteEl.textContent = `📧 Invoice will be sent to ${orderData.email}`;
+  if (emailNoteEl) {
+    emailNoteEl.textContent = (apiResult && apiResult.emailSent)
+      ? `📧 An invoice has been emailed to ${orderData.email}`
+      : `📧 We'll email your invoice to ${orderData.email} shortly`;
+  }
 
   const detailsEl = document.getElementById('confirm-details');
   if (detailsEl) {
@@ -636,9 +641,8 @@ function showConfirmPage(orderData) {
             <p style="font-family:var(--font-sub);font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;">EFT Banking Details</p>
             <p style="font-size:13px;color:var(--text-muted);line-height:1.8;">
               Account Name: ABC FC Foundation<br/>
-              Bank: FNB / Capitec<br/>
               Reference: ${orderData.orderNum}<br/>
-              <em style="font-size:11px;">Full banking details will be sent to your email.</em>
+              <em style="font-size:11px;">Full banking details will be emailed to you with your invoice.</em>
             </p>
           </div>` : ''}
         </div>
@@ -658,11 +662,17 @@ function showConfirmPage(orderData) {
 // ── Search ─────────────────────────────────────────────────
 function openSearch() {
   document.getElementById('search-overlay').classList.add('active');
-  setTimeout(() => document.getElementById('search-input')?.focus(), 100);
+  // Pre-fill with any active query so the user can refine it
+  const input = document.getElementById('search-input');
+  if (input) input.value = window._searchQuery || '';
+  setTimeout(() => input?.focus(), 100);
 }
 function closeSearch() {
   document.getElementById('search-overlay').classList.remove('active');
   window._searchQuery = '';
+  const input = document.getElementById('search-input');
+  if (input) input.value = '';
+  renderProducts(); // reset the grid to the full catalogue
 }
 
 // ── Theme Toggle ───────────────────────────────────────────
@@ -797,6 +807,12 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   document.getElementById('switch-to-guest')?.addEventListener('click', (e) => {
     e.preventDefault();
+    document.getElementById('toggle-guest')?.click();
+  });
+
+  // Sign In is not built yet — give honest feedback instead of a dead button
+  document.getElementById('login-submit-btn')?.addEventListener('click', () => {
+    showToast('Accounts are coming soon — please continue as guest', true);
     document.getElementById('toggle-guest')?.click();
   });
 

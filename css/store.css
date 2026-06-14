@@ -209,12 +209,15 @@ h1,h2,h3,h4 { line-height: 1.1; }
   position: fixed;
   inset: 0;
   z-index: 200;
-  background: rgba(0,0,0,0.85);
+  /* Dim only the top so live search results stay visible underneath */
+  background: linear-gradient(to bottom, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.5) 45%, rgba(0,0,0,0) 75%);
   align-items: flex-start;
   justify-content: center;
   padding-top: 80px;
   padding-left: 16px;
   padding-right: 16px;
+  /* Let clicks/scrolls reach the results below; the box re-enables itself */
+  pointer-events: none;
 }
 .search-overlay.active { display: flex; }
 .search-box {
@@ -222,6 +225,7 @@ h1,h2,h3,h4 { line-height: 1.1; }
   max-width: 560px;
   display: flex;
   gap: 8px;
+  pointer-events: auto;
 }
 .search-input {
   flex: 1;
