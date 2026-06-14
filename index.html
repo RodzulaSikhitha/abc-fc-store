@@ -87,6 +87,14 @@
           <span class="store-logo-tag">Official Store</span>
         </div>
       </a>
+      <nav class="store-topnav" aria-label="Categories">
+        <a href="#" onclick="showPage('shop');return false;">Shop</a>
+        <a href="#" onclick="showCat('kits');return false;">Kits</a>
+        <a href="#" onclick="showCat('training');return false;">Training</a>
+        <a href="#" onclick="showCat('accessories');return false;">Accessories</a>
+        <a href="#" onclick="showCat('kids');return false;">Kids</a>
+        <a href="#" onclick="showCat('ladies');return false;">Ladies</a>
+      </nav>
       <div class="store-header-actions">
         <button class="store-search-btn" id="search-btn" aria-label="Search">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -188,8 +196,8 @@
           <div class="trust-item">
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             <div>
-              <strong>Secure Payments</strong>
-              <span>EFT · Card · PayFast</span>
+              <strong>Cash on Delivery</strong>
+              <span>Limpopo · Pay on arrival</span>
             </div>
           </div>
         </div>
@@ -294,6 +302,7 @@
                   <option value="Free State">Free State</option>
                   <option value="Northern Cape">Northern Cape</option>
                 </select>
+                <span class="form-hint">We currently deliver within Limpopo only. Other provinces coming soon.</span>
               </div>
               <div class="form-group">
                 <label class="form-label" for="special-instructions">Delivery Instructions (optional)</label>
@@ -337,21 +346,7 @@
           <div class="checkout-section-body">
             <div class="payment-options">
               <label class="payment-option">
-                <input type="radio" name="payment" value="eft" checked />
-                <div class="payment-option-body">
-                  <strong>EFT / Bank Transfer</strong>
-                  <span>Banking details sent via email after order</span>
-                </div>
-              </label>
-              <label class="payment-option">
-                <input type="radio" name="payment" value="card" />
-                <div class="payment-option-body">
-                  <strong>Credit / Debit Card</strong>
-                  <span>Secure payment via PayFast</span>
-                </div>
-              </label>
-              <label class="payment-option">
-                <input type="radio" name="payment" value="cash" />
+                <input type="radio" name="payment" value="cod" checked />
                 <div class="payment-option-body">
                   <strong>Cash on Delivery</strong>
                   <span>Pay when your order arrives (Limpopo only)</span>
@@ -360,7 +355,7 @@
             </div>
             <div class="secure-note">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-              All transactions are secure and encrypted
+              Card &amp; EFT payments coming soon. For now we deliver within Limpopo, pay on delivery.
             </div>
           </div>
         </div>

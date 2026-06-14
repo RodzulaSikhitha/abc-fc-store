@@ -506,19 +506,19 @@ const INFO = {
   shipping: {
     title: 'Shipping & Delivery',
     html: `
-      <p>We deliver across South Africa via courier. Orders are dispatched within 1–2 business days once payment is confirmed (for EFT, once funds reflect).</p>
+      <p>We currently deliver <strong>within Limpopo only</strong>, with <strong>Cash on Delivery</strong> — you pay when your order arrives. Nationwide delivery and card/EFT payment are coming soon.</p>
       <h2>Delivery Times</h2>
       <ul>
-        <li>Nationwide courier: <strong>3–5 business days</strong> after dispatch.</li>
+        <li>Within Limpopo: typically <strong>2–5 business days</strong>.</li>
         <li>Remote areas may take slightly longer.</li>
       </ul>
       <h2>Delivery Fees</h2>
       <ul>
         <li><strong>FREE</strong> on orders over <strong>R500</strong>.</li>
         <li>Flat <strong>R99</strong> on orders under R500.</li>
-        <li><strong>Cash on Delivery</strong> is available within Limpopo only.</li>
+        <li>Payment is <strong>Cash on Delivery</strong> (Limpopo).</li>
       </ul>
-      <p>You'll receive your invoice by email when you order, and we'll be in touch with tracking details once your parcel is on its way.</p>`,
+      <p>You'll receive your invoice by email when you order, and we'll be in touch to arrange delivery. Outside Limpopo? Contact us and we'll let you know as soon as we deliver to your area.</p>`,
   },
   returns: {
     title: 'Returns & Exchanges',
@@ -566,13 +566,13 @@ const INFO = {
     title: 'Frequently Asked Questions',
     html: `
       <h2>How can I pay?</h2>
-      <p>EFT / bank transfer and Cash on Delivery (Limpopo only) are available now. Card payments via PayFast are coming soon.</p>
-      <h2>When do I get the EFT banking details?</h2>
-      <p>They're emailed to you with your invoice as soon as you place an EFT order. Use your order number as the payment reference.</p>
+      <p>For now we offer <strong>Cash on Delivery</strong> within Limpopo — you pay when your order arrives. Card and EFT payments are coming soon.</p>
+      <h2>Where do you deliver?</h2>
+      <p>We currently deliver within <strong>Limpopo</strong> only. If you're elsewhere, contact us and we'll let you know when we reach your area.</p>
       <h2>How long does delivery take?</h2>
-      <p>Around 3–5 business days nationwide after dispatch. See our Shipping & Delivery page for details.</p>
+      <p>Typically 2–5 business days within Limpopo. See our Shipping & Delivery page for details.</p>
       <h2>Can I track my order?</h2>
-      <p>Yes — use the Track Order page with your order number, or contact us and we'll update you.</p>
+      <p>Yes — use the Track Order page with your order number and the email you ordered with, or contact us and we'll update you.</p>
       <h2>What's your returns policy?</h2>
       <p>Unused items can be returned within 7 days. See the Returns & Exchanges page.</p>
       <h2>How do I choose the right size?</h2>
@@ -612,8 +612,8 @@ const INFO = {
       </ul>
       <h2>Payment</h2>
       <ul>
-        <li>EFT orders are dispatched once payment reflects in our account.</li>
-        <li>Please use your order number as the payment reference.</li>
+        <li>Payment is currently <strong>Cash on Delivery</strong> within Limpopo — you pay when your order is delivered.</li>
+        <li>Card and EFT payment options will be added in future.</li>
       </ul>
       <h2>Delivery & Risk</h2>
       <p>Delivery timeframes are estimates. Risk in the goods passes to you on delivery.</p>
@@ -625,9 +625,10 @@ const INFO = {
   track: {
     title: 'Track Your Order',
     html: `
-      <p>Enter the order number from your confirmation email (for example, <strong>ABC-123456</strong>).</p>
+      <p>Enter your order number (for example, <strong>ABC-7K2P9Q</strong>) and the email you used to order. For your security, both must match.</p>
       <div class="track-form">
-        <input type="text" id="track-input" placeholder="ABC-000000" autocomplete="off" />
+        <input type="text" id="track-input" placeholder="ABC-XXXXXX" autocomplete="off" />
+        <input type="email" id="track-email" placeholder="Email used on the order" autocomplete="email" />
         <button class="place-order-btn" id="track-submit" style="width:auto;">Track</button>
       </div>
       <div class="track-result" id="track-result"></div>`,
@@ -650,6 +651,7 @@ function showInfo(topic) {
 
 function wireTrackOrder() {
   const input  = document.getElementById('track-input');
+  const emailInput = document.getElementById('track-email');
   const btn    = document.getElementById('track-submit');
   const result = document.getElementById('track-result');
   if (!input || !btn || !result) return;
@@ -657,33 +659,38 @@ function wireTrackOrder() {
   const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, m => (
     { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[m]
   ));
+  const contactLine = 'contact us at <a href="mailto:tshibalo.lucas@gmail.com" style="color:var(--gold);">tshibalo.lucas@gmail.com</a> / <a href="https://wa.me/27711092360" style="color:var(--gold);" target="_blank" rel="noopener">WhatsApp</a>';
 
   function lookup() {
     const num = input.value.trim();
-    if (!num) { result.innerHTML = '<p style="color:var(--text-muted);">Please enter your order number.</p>'; return; }
+    const email = (emailInput?.value || '').trim();
+    if (!num || !email) {
+      result.innerHTML = '<p style="color:var(--text-muted);">Please enter both your order number and the email you ordered with.</p>';
+      return;
+    }
     result.innerHTML = '<p style="color:var(--text-muted);">Looking up your order…</p>';
-    fetch('/api/orders?orderNum=' + encodeURIComponent(num))
+    // Lookup requires order number AND matching email; the server returns
+    // only a minimal status (never the full address/phone).
+    fetch('/api/orders?orderNum=' + encodeURIComponent(num) + '&email=' + encodeURIComponent(email))
       .then(r => r.ok ? r.json() : Promise.reject(r.status))
       .then(order => {
         const when = order.createdAt
           ? new Date(order.createdAt).toLocaleDateString('en-ZA', { day:'2-digit', month:'long', year:'numeric' })
           : '';
-        const itemCount = Array.isArray(order.items)
-          ? order.items.reduce((s, i) => s + (Number(i.qty) || 0), 0)
-          : 0;
         result.innerHTML = `
           <div style="background:var(--surface);border:1px solid rgba(245,168,0,0.2);border-radius:var(--radius-md);padding:16px;">
             <p style="color:var(--gold);font-weight:700;margin:0 0 6px;">Order ${esc(order.orderNum || num)} found</p>
-            <p style="color:var(--text-muted);margin:0;">${when ? 'Placed ' + esc(when) + '. ' : ''}${itemCount} item(s). We've received your order and it's being processed. We'll be in touch with delivery updates.</p>
+            <p style="color:var(--text-muted);margin:0;">${when ? 'Placed ' + esc(when) + '. ' : ''}${Number(order.itemCount) || 0} item(s). Status: ${esc(order.status || 'received and being processed')}. We'll be in touch to arrange delivery.</p>
           </div>`;
       })
       .catch(() => {
-        result.innerHTML = `<p style="color:var(--text-muted);">We couldn't find that order number. Please double-check it, or contact us at <a href="mailto:tshibalo.lucas@gmail.com" style="color:var(--gold);">tshibalo.lucas@gmail.com</a> / <a href="https://wa.me/27711092360" style="color:var(--gold);" target="_blank" rel="noopener">WhatsApp</a> and we'll help.</p>`;
+        result.innerHTML = `<p style="color:var(--text-muted);">We couldn't find an order matching that number and email. Please double-check both, or ${contactLine} and we'll help.</p>`;
       });
   }
 
   btn.addEventListener('click', lookup);
   input.addEventListener('keydown', e => { if (e.key === 'Enter') lookup(); });
+  emailInput?.addEventListener('keydown', e => { if (e.key === 'Enter') lookup(); });
 }
 
 // ── Checkout ───────────────────────────────────────────────
@@ -736,6 +743,10 @@ function validateCheckout() {
   if (!city) { showToast('Please enter your city or town'); return false; }
   if (!postal) { showToast('Please enter your postal code'); return false; }
   if (!province) { showToast('Please select your province'); return false; }
+  if (province !== 'Limpopo') {
+    showToast('We currently deliver within Limpopo only — contact us for other areas');
+    return false;
+  }
   if (cart.length === 0) { showToast('Your cart is empty'); return false; }
   return true;
 }
@@ -747,15 +758,25 @@ function placeOrder() {
   btn.textContent = 'Processing…';
   btn.disabled = true;
 
-  // Simulate order placement (in production, POST to /api/orders)
   const firstName = document.getElementById('first-name').value.trim();
   const lastName  = document.getElementById('last-name').value.trim();
   const email     = document.getElementById('email').value.trim();
-  const orderNum  = 'ABC-' + Date.now().toString().slice(-6);
 
-  const orderData = {
-    orderNum,
+  // Local view used only for the confirmation display. The server is the
+  // source of truth for the order number, item prices and totals.
+  const displayOrder = {
     name: `${firstName} ${lastName}`,
+    email,
+    payment: 'cod',
+    items: [...cart],
+    subtotal: cartTotal(),
+    delivery: cartTotal() >= 500 ? 0 : 99,
+    total: cartTotal() + (cartTotal() >= 500 ? 0 : 99),
+  };
+
+  // Slim, server-validated payload — no prices, no client order number.
+  const payload = {
+    name: displayOrder.name,
     email,
     phone: document.getElementById('phone').value.trim(),
     address: {
@@ -765,24 +786,26 @@ function placeOrder() {
       postal:   document.getElementById('postal-code').value.trim(),
       province: document.getElementById('province').value,
     },
-    payment: document.querySelector('input[name="payment"]:checked')?.value || 'eft',
-    items: [...cart],
-    subtotal: cartTotal(),
-    delivery: cartTotal() >= 500 ? 0 : 99,
-    total: cartTotal() + (cartTotal() >= 500 ? 0 : 99),
-    createdAt: new Date().toISOString(),
+    payment: 'cod',
+    items: cart.map(i => ({ id: i.id, size: i.size, qty: i.qty })),
   };
 
-  // Send to API
   fetch('/api/orders', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(orderData),
+    body: JSON.stringify(payload),
   })
   .then(r => r.ok ? r.json() : null)
   .catch(() => null) // Gracefully handle API not available
   .then(result => {
-    showConfirmPage(orderData, result);
+    const finalOrder = {
+      ...displayOrder,
+      orderNum: (result && result.orderNum) || ('ABC-' + Date.now().toString(36).slice(-6).toUpperCase()),
+      subtotal: (result && result.subtotal != null) ? result.subtotal : displayOrder.subtotal,
+      delivery: (result && result.delivery != null) ? result.delivery : displayOrder.delivery,
+      total:    (result && result.total    != null) ? result.total    : displayOrder.total,
+    };
+    showConfirmPage(finalOrder, result);
     btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Place Order`;
     btn.disabled = false;
   });
@@ -802,7 +825,6 @@ function showConfirmPage(orderData, apiResult) {
 
   const detailsEl = document.getElementById('confirm-details');
   if (detailsEl) {
-    const subtotal = orderData.subtotal;
     const delivery = orderData.delivery;
     const total    = orderData.total;
 
@@ -821,15 +843,13 @@ function showConfirmPage(orderData, apiResult) {
             <div class="ot-row"><span>Delivery</span><span>${delivery === 0 ? 'FREE' : formatZAR(delivery)}</span></div>
             <div class="ot-row total"><span>Total</span><span>${formatZAR(total)}</span></div>
           </div>
-          ${orderData.payment === 'eft' ? `
           <div style="margin-top:16px;padding:14px;background:var(--gold-faint);border:1px solid rgba(245,168,0,0.2);border-radius:var(--radius-md);">
-            <p style="font-family:var(--font-sub);font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;">EFT Banking Details</p>
+            <p style="font-family:var(--font-sub);font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;">Cash on Delivery</p>
             <p style="font-size:13px;color:var(--text-muted);line-height:1.8;">
-              Account Name: ABC FC Foundation<br/>
-              Reference: ${orderData.orderNum}<br/>
-              <em style="font-size:11px;">Full banking details will be emailed to you with your invoice.</em>
+              Pay <strong>${formatZAR(total)}</strong> in cash when your order is delivered (Limpopo).
+              We'll be in touch to arrange delivery.
             </p>
-          </div>` : ''}
+          </div>
         </div>
       </div>
     `;

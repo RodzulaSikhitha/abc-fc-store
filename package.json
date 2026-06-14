@@ -1,0 +1,9 @@
+{
+  "name": "abc-fc-store",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ABC FC official store — static storefront + Vercel serverless functions",
+  "dependencies": {
+    "@neondatabase/serverless": "^0.9.4"
+  }
+}

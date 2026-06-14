@@ -1711,3 +1711,54 @@ body {
   font-size: 15px;
   outline: none;
 }
+
+/* ============================================================
+   DESKTOP & TABLET ENHANCEMENTS (additive)
+   All rules below are min-width gated, so the mobile layout
+   (everything above) is completely unaffected.
+   ============================================================ */
+
+/* Desktop top nav lives in the header; hidden on mobile by default. */
+.store-topnav { display: none; }
+
+@media (min-width: 768px) {
+  /* Reveal the top category nav and let it sit between logo and actions */
+  .store-logo { flex: 0 0 auto; }
+  .store-topnav {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    margin-left: 28px;
+    margin-right: auto;
+  }
+  .store-topnav a {
+    font-family: var(--font-sub);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 6px 2px;
+    border-bottom: 2px solid transparent;
+    transition: color var(--transition), border-color var(--transition);
+  }
+  .store-topnav a:hover { color: var(--text); border-bottom-color: var(--gold); }
+
+  /* A touch more breathing room in the hero on tablets+ */
+  .cat-banner { padding: 40px 16px 34px; }
+}
+
+@media (min-width: 1024px) {
+  /* On desktop the mobile bottom tab-bar is redundant — the top nav covers it */
+  .bottom-quicknav { display: none; }
+  body { padding-bottom: 24px; }
+
+  /* Give the catalogue a bit more presence on wide screens */
+  .cat-banner { padding: 52px 16px 44px; }
+  .products-grid { gap: 22px; }
+}
+
+/* Very wide screens: keep the 4-col grid from getting oversized */
+@media (min-width: 1440px) {
+  .products-grid { grid-template-columns: repeat(4, 1fr); }
+}
