@@ -124,9 +124,21 @@ module.exports = async function handler(req, res) {
   if (req.method === 'GET') {
     const orderNum = str(req.query && req.query.orderNum, 20);
     const email    = str(req.query && req.query.email, 200);
-    if (!orderNum || !email) return res.status(400).json({ error: 'Order number and email are required' });
     const sql = getSql();
     if (!sql) return res.status(404).json({ error: 'Order not found' });
+
+    // TEMPORARY diagnostic: list this email's recent online orders so a
+    // stranded payment can be found without already knowing its order number.
+    // TODO: remove once the live webhook/reconciliation issue is confirmed fixed.
+    if (email && req.query.listRecent === '1') {
+      const rows = await sql`
+        SELECT order_num, total, status, paylink_id, created_at
+        FROM orders WHERE lower(email) = lower(${email}) AND payment = 'online'
+        ORDER BY created_at DESC LIMIT 10`;
+      return res.status(200).json({ orders: rows });
+    }
+
+    if (!orderNum || !email) return res.status(400).json({ error: 'Order number and email are required' });
     try {
       const rows = await sql`
         SELECT order_num, email, name, phone, address, created_at, items, subtotal, delivery, total, payment, status, paylink_id
