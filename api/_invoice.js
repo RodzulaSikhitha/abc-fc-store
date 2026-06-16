@@ -136,8 +136,9 @@ function sendInvoice(order) {
       ? `Payment Received — Your ABC Store Order ${order.orderNum}`
       : `Your ABC Store Order — ${order.orderNum}`;
 
+  const from = process.env.EMAIL_FROM || 'ABC Store <onboarding@resend.dev>';
   const payload = JSON.stringify({
-    from: 'ABC Store <store@abcfc.store>',
+    from,
     to: [order.email],
     bcc: ['tshibalo.lucas@gmail.com'],
     reply_to: SUPPORT_EMAIL,
