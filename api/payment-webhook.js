@@ -7,10 +7,19 @@
 // confirmed status is ever written to the database or triggers an invoice.
 
 const { getSql, ensureSchema } = require('./_db');
-const { sendInvoice } = require('./_invoice');
-const ikhokha = require('./_ikhokha');
+const { reconcileOnlineOrder } = require('./_payment');
 
 const str = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
+
+// iKhokha's webhook payload shape isn't documented anywhere we could find,
+// so accept a few plausible key spellings rather than guessing wrong once
+// and silently dropping every real callback.
+function pick(body, keys) {
+  for (const k of keys) {
+    if (typeof body[k] === 'string' && body[k]) return body[k];
+  }
+  return '';
+}
 
 module.exports = async function handler(req, res) {
   res.setHeader('Content-Type', 'application/json');
@@ -21,10 +30,14 @@ module.exports = async function handler(req, res) {
   // notification with no audience.
   try {
     const body = req.body || {};
-    const externalTransactionID = str(body.externalTransactionID, 20);
-    const paylinkID = str(body.paylinkID, 100);
+    // Logged (not returned to any client) so we can see the real payload
+    // shape the next time a live payment comes through.
+    console.log('[payment-webhook] raw body:', JSON.stringify(body));
+
+    const externalTransactionID = str(pick(body, ['externalTransactionID', 'externalTransactionId', 'paymentReference', 'reference']), 20);
+    const paylinkID = str(pick(body, ['paylinkID', 'paylinkId', 'payLinkID', 'id']), 100);
     if (!externalTransactionID || !paylinkID) {
-      console.error('[payment-webhook] missing identifiers in payload');
+      console.error('[payment-webhook] missing identifiers in payload', JSON.stringify(body));
       return res.status(200).json({ ok: true });
     }
 
@@ -41,41 +54,13 @@ module.exports = async function handler(req, res) {
     }
     const row = rows[0];
 
-    // Idempotent — ignore repeat callbacks for an order already settled.
-    if (row.status === 'paid' || row.status === 'failed' || row.status === 'cancelled') {
-      return res.status(200).json({ ok: true });
-    }
     // Make sure this callback is for the paylink we actually created.
     if (row.paylink_id && row.paylink_id !== paylinkID) {
       console.error('[payment-webhook] paylinkID mismatch for', externalTransactionID);
       return res.status(200).json({ ok: true });
     }
 
-    const confirmed = await ikhokha.getStatus(paylinkID);
-    const status = String(confirmed.status || confirmed.responseCode || '').toUpperCase();
-
-    if (status === 'SUCCESS' || status === 'PAID' || status === 'COMPLETED') {
-      await sql`UPDATE orders SET status = 'paid' WHERE order_num = ${externalTransactionID}`;
-      const order = {
-        orderNum: row.order_num,
-        email: row.email,
-        name: row.name,
-        phone: row.phone,
-        address: row.address,
-        items: Array.isArray(row.items) ? row.items : [],
-        subtotal: Number(row.subtotal),
-        delivery: Number(row.delivery),
-        total: Number(row.total),
-        payment: 'online',
-        createdAt: row.created_at,
-      };
-      await sendInvoice(order);
-    } else if (status === 'FAILED' || status === 'CANCELLED' || status === 'EXPIRED') {
-      await sql`UPDATE orders SET status = ${status.toLowerCase()} WHERE order_num = ${externalTransactionID}`;
-    }
-    // Any other status (e.g. still pending) — leave as pending_payment, a
-    // later callback or retry will resolve it.
-
+    await reconcileOnlineOrder(sql, row);
     return res.status(200).json({ ok: true });
   } catch (err) {
     console.error('[payment-webhook] error:', err.message);
