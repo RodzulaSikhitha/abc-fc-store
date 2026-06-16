@@ -4,6 +4,8 @@
 // (css/store.css): gold #F5A800 on near-black, Bebas Neue / Barlow
 // Condensed / Inter font stack, ABC FC logo.
 
+const { byId } = require('./_catalogue');
+
 const SITE_URL = 'https://abcfc.store';
 const LOGO_URL = `${SITE_URL}/images/abc-fc-logo.jpeg`;
 const SUPPORT_EMAIL = 'sikhitha.r@gmail.com';
@@ -23,13 +25,25 @@ function generateInvoiceHTML(order) {
   const isPending = order.status === 'pending_payment';
   const isPaidOnline = order.status === 'paid' && order.payment === 'online';
 
-  const itemsRows = order.items.map(item => `
+  const itemsRows = order.items.map(item => {
+    const product = byId[item.id];
+    const imgUrl = product && product.image ? `${SITE_URL}/${product.image}` : null;
+    const thumb = imgUrl
+      ? `<img src="${imgUrl}" width="48" height="48" alt="${esc(item.name)}" style="display:block;border-radius:6px;object-fit:cover;border:1px solid #2a2a2a;" />`
+      : '';
+    return `
     <tr>
-      <td style="padding:10px 12px;border-bottom:1px solid #2a2a2a;font-family:${FONT_BODY};font-size:13px;color:#f0f0f0;">${esc(item.name)}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid #2a2a2a;font-family:${FONT_BODY};font-size:13px;color:#f0f0f0;">
+        <table cellpadding="0" cellspacing="0"><tr>
+          ${thumb ? `<td style="padding-right:10px;">${thumb}</td>` : ''}
+          <td style="font-family:${FONT_BODY};font-size:13px;color:#f0f0f0;">${esc(item.name)}</td>
+        </tr></table>
+      </td>
       <td style="padding:10px 12px;border-bottom:1px solid #2a2a2a;text-align:center;font-family:${FONT_BODY};font-size:13px;color:#999;">${esc(item.size)}</td>
       <td style="padding:10px 12px;border-bottom:1px solid #2a2a2a;text-align:center;font-family:${FONT_BODY};font-size:13px;color:#999;">${item.qty}</td>
       <td style="padding:10px 12px;border-bottom:1px solid #2a2a2a;text-align:right;font-family:${FONT_BODY};font-size:13px;color:#F5A800;font-weight:bold;">R ${(item.price * item.qty).toFixed(2)}</td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
   const addr = order.address || {};
 
   let heading, totalLabel, paymentBlock;
