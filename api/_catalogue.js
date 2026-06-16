@@ -22,9 +22,9 @@ const PRODUCTS = [
 
 const byId = Object.fromEntries(PRODUCTS.map(p => [p.id, p]));
 
-// Delivery rule: free over R500, otherwise R99.
-function deliveryFee(subtotal) {
-  return subtotal >= 500 ? 0 : 99;
+// Delivery rule: flat rate by destination — R50 within Limpopo, R75 elsewhere in SA.
+function deliveryFee(province) {
+  return province === 'Limpopo' ? 50 : 75;
 }
 
 module.exports = { PRODUCTS, byId, deliveryFee };

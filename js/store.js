@@ -727,15 +727,26 @@ function buildCheckoutPage() {
   });
 
   const subtotal = cartTotal();
-  const delivery = subtotal >= 500 ? 0 : 99;
+  const province = document.getElementById('province')?.value;
+  const delivery = isTestOnlyCart() ? 0 : deliveryFee(province);
   const total = subtotal + delivery;
 
   const subtotalEl = document.getElementById('ot-subtotal');
   const deliveryEl = document.getElementById('ot-delivery');
   const totalEl = document.getElementById('ot-total');
   if (subtotalEl) subtotalEl.textContent = formatZAR(subtotal);
-  if (deliveryEl) deliveryEl.textContent = delivery === 0 ? 'FREE' : formatZAR(delivery);
+  if (deliveryEl) deliveryEl.textContent = formatZAR(delivery);
   if (totalEl) totalEl.textContent = formatZAR(total);
+}
+
+// Delivery rule: flat rate by destination — R50 within Limpopo, R75 elsewhere in SA.
+function deliveryFee(province) {
+  return province === 'Limpopo' ? 50 : 75;
+}
+
+// The R1 test item is for trying out checkout/payment — no delivery fee.
+function isTestOnlyCart() {
+  return cart.length === 1 && cart[0].id === 'p13';
 }
 
 function validateCheckout() {
@@ -756,10 +767,6 @@ function validateCheckout() {
   if (!city) { showToast('Please enter your city or town'); return false; }
   if (!postal) { showToast('Please enter your postal code'); return false; }
   if (!province) { showToast('Please select your province'); return false; }
-  if (province !== 'Limpopo') {
-    showToast('We currently deliver within Limpopo only — contact us for other areas');
-    return false;
-  }
   if (cart.length === 0) { showToast('Your cart is empty'); return false; }
   return true;
 }
@@ -775,6 +782,8 @@ function placeOrder() {
   const lastName  = document.getElementById('last-name').value.trim();
   const email     = document.getElementById('email').value.trim();
   const payment   = document.querySelector('input[name="payment"]:checked')?.value === 'online' ? 'online' : 'cod';
+  const province  = document.getElementById('province').value;
+  const delivery  = deliveryFee(province);
 
   // Local view used only for the confirmation display. The server is the
   // source of truth for the order number, item prices and totals.
@@ -784,8 +793,8 @@ function placeOrder() {
     payment,
     items: [...cart],
     subtotal: cartTotal(),
-    delivery: cartTotal() >= 500 ? 0 : 99,
-    total: cartTotal() + (cartTotal() >= 500 ? 0 : 99),
+    delivery,
+    total: cartTotal() + delivery,
   };
 
   // Slim, server-validated payload — no prices, no client order number.
@@ -1003,6 +1012,9 @@ document.addEventListener('DOMContentLoaded', () => {
     buildCheckoutPage();
     showPage('checkout');
   });
+
+  // Recalculate delivery fee when the customer changes province
+  document.getElementById('province')?.addEventListener('change', buildCheckoutPage);
 
   // Back to shop
   document.getElementById('back-to-shop')?.addEventListener('click', (e) => {
