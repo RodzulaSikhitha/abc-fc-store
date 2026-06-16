@@ -144,6 +144,16 @@ module.exports = async function handler(req, res) {
       return res.status(200).json({ orders: rows });
     }
 
+    // TEMPORARY diagnostic: confirm exactly what EMAIL_FROM resolves to,
+    // since a copy/paste into Vercel's env var UI can silently add quotes
+    // or whitespace that breaks the From header's display name.
+    if (req.query.checkEmailFrom === '1') {
+      return res.status(200).json({
+        emailFromRaw: JSON.stringify(process.env.EMAIL_FROM),
+        length: process.env.EMAIL_FROM ? process.env.EMAIL_FROM.length : 0,
+      });
+    }
+
     if (!orderNum || !email) return res.status(400).json({ error: 'Order number and email are required' });
     try {
       const rows = await sql`
