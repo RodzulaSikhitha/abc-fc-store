@@ -506,7 +506,7 @@ const INFO = {
   shipping: {
     title: 'Shipping & Delivery',
     html: `
-      <p>We currently deliver <strong>within Limpopo only</strong>, with <strong>Cash on Delivery</strong> — you pay when your order arrives. Nationwide delivery and card/EFT payment are coming soon.</p>
+      <p>We currently deliver <strong>within Limpopo only</strong>. You can pay securely online by card or Instant EFT (via iKhokha), or choose <strong>Cash on Delivery</strong> — you pay when your order arrives. Nationwide delivery is coming soon.</p>
       <h2>Delivery Times</h2>
       <ul>
         <li>Within Limpopo: typically <strong>2–5 business days</strong>.</li>
@@ -516,7 +516,7 @@ const INFO = {
       <ul>
         <li><strong>FREE</strong> on orders over <strong>R500</strong>.</li>
         <li>Flat <strong>R99</strong> on orders under R500.</li>
-        <li>Payment is <strong>Cash on Delivery</strong> (Limpopo).</li>
+        <li>Pay online (card / Instant EFT) at checkout, or Cash on Delivery (Limpopo).</li>
       </ul>
       <p>You'll receive your invoice by email when you order, and we'll be in touch to arrange delivery. Outside Limpopo? Contact us and we'll let you know as soon as we deliver to your area.</p>`,
   },
@@ -566,7 +566,7 @@ const INFO = {
     title: 'Frequently Asked Questions',
     html: `
       <h2>How can I pay?</h2>
-      <p>For now we offer <strong>Cash on Delivery</strong> within Limpopo — you pay when your order arrives. Card and EFT payments are coming soon.</p>
+      <p>You can pay securely online by card or Instant EFT via iKhokha, or choose <strong>Cash on Delivery</strong> within Limpopo — you pay when your order arrives.</p>
       <h2>Where do you deliver?</h2>
       <p>We currently deliver within <strong>Limpopo</strong> only. If you're elsewhere, contact us and we'll let you know when we reach your area.</p>
       <h2>How long does delivery take?</h2>
@@ -612,8 +612,8 @@ const INFO = {
       </ul>
       <h2>Payment</h2>
       <ul>
-        <li>Payment is currently <strong>Cash on Delivery</strong> within Limpopo — you pay when your order is delivered.</li>
-        <li>Card and EFT payment options will be added in future.</li>
+        <li>You may pay securely online by card or Instant EFT, processed by iKhokha — we never see or store your card details.</li>
+        <li>Alternatively, choose <strong>Cash on Delivery</strong> within Limpopo — you pay when your order is delivered.</li>
       </ul>
       <h2>Delivery & Risk</h2>
       <p>Delivery timeframes are estimates. Risk in the goods passes to you on delivery.</p>
@@ -761,13 +761,14 @@ function placeOrder() {
   const firstName = document.getElementById('first-name').value.trim();
   const lastName  = document.getElementById('last-name').value.trim();
   const email     = document.getElementById('email').value.trim();
+  const payment   = document.querySelector('input[name="payment"]:checked')?.value === 'online' ? 'online' : 'cod';
 
   // Local view used only for the confirmation display. The server is the
   // source of truth for the order number, item prices and totals.
   const displayOrder = {
     name: `${firstName} ${lastName}`,
     email,
-    payment: 'cod',
+    payment,
     items: [...cart],
     subtotal: cartTotal(),
     delivery: cartTotal() >= 500 ? 0 : 99,
@@ -786,7 +787,7 @@ function placeOrder() {
       postal:   document.getElementById('postal-code').value.trim(),
       province: document.getElementById('province').value,
     },
-    payment: 'cod',
+    payment,
     items: cart.map(i => ({ id: i.id, size: i.size, qty: i.qty })),
   };
 
@@ -795,9 +796,26 @@ function placeOrder() {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   })
-  .then(r => r.ok ? r.json() : null)
-  .catch(() => null) // Gracefully handle API not available
-  .then(result => {
+  .then(r => r.json().then(data => ({ ok: r.ok, data })))
+  .catch(() => ({ ok: false, data: null }))
+  .then(({ ok, data: result }) => {
+    if (payment === 'online') {
+      if (ok && result && result.paymentUrl) {
+        // Hand off to iKhokha's hosted checkout. We stash just enough to
+        // look the order back up (by order number + email) when the
+        // customer is redirected back to us.
+        try {
+          sessionStorage.setItem('abcfc_pending_order', JSON.stringify({ orderNum: result.orderNum, email }));
+        } catch (e) {}
+        window.location.href = result.paymentUrl;
+        return;
+      }
+      showToast((result && result.error) || 'Could not start online payment. Please try again or choose Cash on Delivery.');
+      btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Place Order`;
+      btn.disabled = false;
+      return;
+    }
+
     const finalOrder = {
       ...displayOrder,
       orderNum: (result && result.orderNum) || ('ABC-' + Date.now().toString(36).slice(-6).toUpperCase()),
@@ -809,6 +827,59 @@ function placeOrder() {
     btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Place Order`;
     btn.disabled = false;
   });
+}
+
+// ── Returning from iKhokha's hosted checkout ────────────────
+function handlePaymentReturn() {
+  const params = new URLSearchParams(window.location.search);
+  const result = params.get('payment');
+  if (!result) return;
+
+  let pending = null;
+  try { pending = JSON.parse(sessionStorage.getItem('abcfc_pending_order') || 'null'); } catch (e) {}
+  sessionStorage.removeItem('abcfc_pending_order');
+  // Drop the query string so a refresh doesn't replay this.
+  history.replaceState(null, '', window.location.pathname);
+
+  if (result === 'success' && pending && pending.orderNum && pending.email) {
+    cart = [];
+    saveCart();
+    updateCartBadges();
+    renderCartItems();
+    fetch('/api/orders?orderNum=' + encodeURIComponent(pending.orderNum) + '&email=' + encodeURIComponent(pending.email))
+      .then(r => r.ok ? r.json() : null)
+      .catch(() => null)
+      .then(order => {
+        const paid = order && order.status === 'paid';
+        const numEl = document.getElementById('confirm-order-num');
+        if (numEl) numEl.textContent = `Order ${pending.orderNum}`;
+        const emailNoteEl = document.getElementById('confirm-email-note');
+        if (emailNoteEl) {
+          emailNoteEl.textContent = paid
+            ? `📧 A paid invoice has been emailed to ${pending.email}`
+            : `We're confirming your payment with iKhokha — your invoice will be emailed to ${pending.email} shortly.`;
+        }
+        const detailsEl = document.getElementById('confirm-details');
+        if (detailsEl) {
+          detailsEl.innerHTML = `
+            <div class="checkout-section" style="width:100%;text-align:left;margin-top:16px;">
+              <div class="checkout-section-body" style="padding:12px 16px;">
+                <div style="padding:14px;background:var(--gold-faint);border:1px solid rgba(245,168,0,0.2);border-radius:var(--radius-md);">
+                  <p style="font-family:var(--font-sub);font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;">${paid ? 'Payment Confirmed' : 'Payment Processing'}</p>
+                  <p style="font-size:13px;color:var(--text-muted);line-height:1.8;">
+                    ${paid ? `Thank you — we've received ${order.total != null ? formatZAR(order.total) : 'your payment'} via iKhokha.` : 'We\'re still confirming your payment with iKhokha. You\'ll receive an email invoice as soon as it clears.'}
+                  </p>
+                </div>
+              </div>
+            </div>`;
+        }
+        showPage('confirm');
+      });
+    return;
+  }
+
+  if (result === 'failed') { showToast('Your payment did not go through. Please try again.'); showPage('checkout'); return; }
+  if (result === 'cancelled') { showToast('Payment cancelled.'); showPage('checkout'); return; }
 }
 
 function showConfirmPage(orderData, apiResult) {
@@ -903,6 +974,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Footer year
   const fy = document.getElementById('footer-year');
   if (fy) fy.textContent = new Date().getFullYear();
+
+  // Returning from iKhokha's hosted checkout (success/failed/cancelled)
+  handlePaymentReturn();
 
   // Cart button
   document.getElementById('cart-btn')?.addEventListener('click', openCart);
