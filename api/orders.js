@@ -146,12 +146,30 @@ module.exports = async function handler(req, res) {
 
       const items = Array.isArray(o.items) ? o.items : [];
       const itemCount = items.reduce((s, i) => s + (Number(i.qty) || 0), 0);
+
+      // TEMPORARY diagnostic: surface the raw iKhokha status check so we can
+      // see why a stuck payment isn't reconciling, without needing log access.
+      // Gated behind the same orderNum+email auth as the rest of this lookup.
+      // TODO: remove once the live webhook/reconciliation issue is confirmed fixed.
+      let debug;
+      if (req.query && req.query.debug === '1') {
+        debug = { paylinkId: o.paylink_id || null, payment: o.payment, dbStatus: o.status };
+        if (o.paylink_id) {
+          try {
+            debug.ikhokha = await ikhokha.getStatus(o.paylink_id);
+          } catch (e) {
+            debug.ikhokhaError = e.message;
+          }
+        }
+      }
+
       return res.status(200).json({
         orderNum: o.order_num,
         createdAt: o.created_at,
         itemCount,
         total: Number(o.total),
         status: status || 'received and being processed',
+        ...(debug ? { debug } : {}),
       });
     } catch (err) {
       console.error('[orders] lookup error:', err.message);
