@@ -200,6 +200,8 @@ module.exports = async function handler(req, res) {
           },
         });
         await sql`UPDATE orders SET paylink_id = ${paylink.paylinkID} WHERE order_num = ${order.orderNum}`;
+        // Fire-and-forget — don't delay the redirect to iKhokha waiting on Resend.
+        sendInvoice({ ...order, paymentUrl: paylink.paylinkUrl }).catch(() => {});
         return res.status(200).json({
           success: true,
           orderNum: order.orderNum,
