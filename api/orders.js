@@ -127,14 +127,20 @@ module.exports = async function handler(req, res) {
     const sql = getSql();
     if (!sql) return res.status(404).json({ error: 'Order not found' });
 
-    // TEMPORARY diagnostic: list this email's recent online orders so a
-    // stranded payment can be found without already knowing its order number.
+    // TEMPORARY diagnostic: list the most recent online orders (optionally
+    // filtered by email) so a stranded payment can be found even if the
+    // email used at checkout is unknown/mistyped.
     // TODO: remove once the live webhook/reconciliation issue is confirmed fixed.
-    if (email && req.query.listRecent === '1') {
-      const rows = await sql`
-        SELECT order_num, total, status, paylink_id, created_at
-        FROM orders WHERE lower(email) = lower(${email}) AND payment = 'online'
-        ORDER BY created_at DESC LIMIT 10`;
+    if (req.query.listRecent === '1') {
+      const rows = email
+        ? await sql`
+            SELECT order_num, email, total, status, paylink_id, created_at
+            FROM orders WHERE lower(email) = lower(${email}) AND payment = 'online'
+            ORDER BY created_at DESC LIMIT 10`
+        : await sql`
+            SELECT order_num, email, total, status, paylink_id, created_at
+            FROM orders WHERE payment = 'online'
+            ORDER BY created_at DESC LIMIT 10`;
       return res.status(200).json({ orders: rows });
     }
 
