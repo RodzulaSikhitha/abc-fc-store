@@ -154,6 +154,19 @@ module.exports = async function handler(req, res) {
       });
     }
 
+    // TEMPORARY diagnostic: confirm whether iKhokha paylinks are being
+    // created in live or test mode, and which entity, to investigate a
+    // real-money mismatch (paylink shows PAID in our reconciliation but
+    // no money movement seen in the customer's bank/wallet).
+    // TODO: remove once the live-mode investigation is confirmed resolved.
+    if (req.query.checkIkhokhaMode === '1') {
+      return res.status(200).json({
+        mode: process.env.IKHOKHA_MODE || '(default: live)',
+        entityId: process.env.IKHOKHA_ENTITY_ID ? '(set, hidden)' : '(falls back to IKHOKHA_APP_ID)',
+        configured: ikhokha.isConfigured(),
+      });
+    }
+
     if (!orderNum || !email) return res.status(400).json({ error: 'Order number and email are required' });
     try {
       const rows = await sql`
