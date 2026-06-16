@@ -237,8 +237,16 @@ async function sendInvoice(order) {
     const req = https.request({
       hostname: 'api.resend.com', path: '/emails', method: 'POST',
       headers: { 'Authorization': `Bearer ${RESEND_KEY}`, 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) },
-    }, (r) => { r.on('data', () => {}); r.on('end', () => resolve(r.statusCode >= 200 && r.statusCode < 300)); });
-    req.on('error', () => resolve(false));
+    }, (r) => {
+      let body = '';
+      r.on('data', (c) => { body += c; });
+      r.on('end', () => {
+        const ok = r.statusCode >= 200 && r.statusCode < 300;
+        if (!ok) console.error('[invoice] Resend send failed:', r.statusCode, body);
+        resolve(ok);
+      });
+    });
+    req.on('error', (e) => { console.error('[invoice] Resend request error:', e.message); resolve(false); });
     req.write(payload); req.end();
   });
 }
