@@ -236,7 +236,8 @@ module.exports = async function handler(req, res) {
           amountCents: Math.round(order.total * 100),
           currency: 'ZAR',
           requesterUrl: origin,
-          description: `ABC FC Store order ${order.orderNum}`,
+          description: `ABC FC Store — Order ${order.orderNum} — ${order.name}`.slice(0, 120),
+          paymentReference: `${order.orderNum} ${order.name}`.slice(0, 100),
           externalTransactionID: order.orderNum,
           urls: {
             callbackUrl: `${origin}/api/payment-webhook`,

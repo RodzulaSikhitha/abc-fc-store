@@ -66,7 +66,10 @@ function request(method, path, bodyObj) {
 }
 
 // Creates a hosted payment link. `urls` = { callbackUrl, successPageUrl, failurePageUrl, cancelUrl }.
-async function createPaylink({ amountCents, currency, requesterUrl, description, externalTransactionID, urls }) {
+// `paymentReference` defaults to externalTransactionID but can be overridden
+// with something more human-readable (e.g. "Order ABC-XXXX — Jane Doe") so
+// the transaction is identifiable from iKhokha's own dashboard, not just our DB.
+async function createPaylink({ amountCents, currency, requesterUrl, description, externalTransactionID, paymentReference, urls }) {
   const cfg = getConfig();
   if (!cfg) throw new Error('iKhokha is not configured');
   const path = `${BASE_PATH}/payment`;
@@ -77,7 +80,7 @@ async function createPaylink({ amountCents, currency, requesterUrl, description,
     currency,
     requesterUrl,
     description,
-    paymentReference: externalTransactionID,
+    paymentReference: paymentReference || externalTransactionID,
     mode: cfg.mode,
     externalTransactionID,
     urls,
