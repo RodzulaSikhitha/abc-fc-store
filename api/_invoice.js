@@ -203,7 +203,7 @@ function generateInvoicePDF(order) {
 }
 
 async function sendInvoice(order) {
-  const RESEND_KEY = process.env.RESEND_API_KEY;
+  const RESEND_KEY = process.env.RESEND_API_KEY || process.env.RESEND_API;
   if (!RESEND_KEY) return false;
   const https = require('https');
 
