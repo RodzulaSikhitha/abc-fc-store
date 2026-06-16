@@ -21,7 +21,7 @@
 const crypto = require('crypto');
 const { byId, deliveryFee } = require('./_catalogue');
 const { getSql, ensureSchema } = require('./_db');
-const { sendInvoice } = require('./_invoice');
+const { sendCustomerInvoice, sendAdminOrderNotice } = require('./_invoice');
 const { reconcileOnlineOrder } = require('./_payment');
 const ikhokha = require('./_ikhokha');
 
@@ -264,7 +264,8 @@ module.exports = async function handler(req, res) {
         });
         await sql`UPDATE orders SET paylink_id = ${paylink.paylinkID} WHERE order_num = ${order.orderNum}`;
         // Fire-and-forget — don't delay the redirect to iKhokha waiting on Resend.
-        sendInvoice({ ...order, paymentUrl: paylink.paylinkUrl }).catch(() => {});
+        // No admin notice yet: nothing to fulfil until the payment actually lands.
+        sendCustomerInvoice({ ...order, paymentUrl: paylink.paylinkUrl }).catch(() => {});
         return res.status(200).json({
           success: true,
           orderNum: order.orderNum,
@@ -281,7 +282,9 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    const emailSent = await sendInvoice(order);
+    const emailSent = await sendCustomerInvoice(order);
+    // COD orders need fulfilment immediately, so notify the team now.
+    sendAdminOrderNotice(order).catch(() => {});
 
     return res.status(200).json({
       success: true,

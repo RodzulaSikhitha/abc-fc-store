@@ -4,7 +4,7 @@
 // callback from iKhokha never arrives or arrives in a shape we don't
 // recognise. Never trusts an inbound payload's own status field — always
 // re-asks iKhokha directly via a signed server-to-server request.
-const { sendInvoice } = require('./_invoice');
+const { sendCustomerInvoice, sendAdminOrderNotice } = require('./_invoice');
 const ikhokha = require('./_ikhokha');
 
 const SETTLED = ['paid', 'failed', 'cancelled'];
@@ -25,7 +25,7 @@ async function reconcileOnlineOrder(sql, row) {
 
   if (status === 'SUCCESS' || status === 'PAID' || status === 'COMPLETED') {
     await sql`UPDATE orders SET status = 'paid' WHERE order_num = ${row.order_num}`;
-    await sendInvoice({
+    const paidOrder = {
       orderNum: row.order_num,
       email: row.email,
       name: row.name,
@@ -38,7 +38,14 @@ async function reconcileOnlineOrder(sql, row) {
       payment: 'online',
       status: 'paid',
       createdAt: row.created_at,
-    });
+    };
+    // Payment just landed — this is the moment the order becomes
+    // fulfillable, so the customer gets their paid invoice and the team
+    // gets the fulfilment notice at the same time.
+    await Promise.all([
+      sendCustomerInvoice(paidOrder),
+      sendAdminOrderNotice(paidOrder),
+    ]);
     return 'paid';
   }
   if (status === 'FAILED' || status === 'CANCELLED' || status === 'EXPIRED') {
