@@ -22,6 +22,7 @@ const crypto = require('crypto');
 const { byId, deliveryFee } = require('./_catalogue');
 const { getSql, ensureSchema } = require('./_db');
 const { sendInvoice } = require('./_invoice');
+const { reconcileOnlineOrder } = require('./_payment');
 const ikhokha = require('./_ikhokha');
 
 const str = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
@@ -128,12 +129,21 @@ module.exports = async function handler(req, res) {
     if (!sql) return res.status(404).json({ error: 'Order not found' });
     try {
       const rows = await sql`
-        SELECT order_num, created_at, items, total, status
+        SELECT order_num, email, name, phone, address, created_at, items, subtotal, delivery, total, payment, status, paylink_id
         FROM orders
         WHERE order_num = ${orderNum} AND lower(email) = lower(${email})
         LIMIT 1`;
       if (!rows.length) return res.status(404).json({ error: 'Order not found' });
       const o = rows[0];
+
+      // A customer checking their order status is itself a safe trigger to
+      // re-verify with iKhokha directly, in case the webhook callback never
+      // arrived or arrived in an unrecognised shape.
+      let status = o.status;
+      if (status === 'pending_payment' && o.payment === 'online' && o.paylink_id) {
+        status = await reconcileOnlineOrder(sql, o);
+      }
+
       const items = Array.isArray(o.items) ? o.items : [];
       const itemCount = items.reduce((s, i) => s + (Number(i.qty) || 0), 0);
       return res.status(200).json({
@@ -141,7 +151,7 @@ module.exports = async function handler(req, res) {
         createdAt: o.created_at,
         itemCount,
         total: Number(o.total),
-        status: o.status || 'received and being processed',
+        status: status || 'received and being processed',
       });
     } catch (err) {
       console.error('[orders] lookup error:', err.message);
