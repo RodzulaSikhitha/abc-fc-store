@@ -123,9 +123,88 @@ function generateInvoiceHTML(order) {
 </body></html>`;
 }
 
-function sendInvoice(order) {
+function generateInvoicePDF(order) {
+  const PDFDocument = require('pdfkit');
+  const isPending = order.status === 'pending_payment';
+  const isPaidOnline = order.status === 'paid' && order.payment === 'online';
+  const heading = isPending ? 'Order Received' : isPaidOnline ? 'Payment Confirmed' : 'Order Confirmation';
+  const totalLabel = isPending ? 'Total Due' : isPaidOnline ? 'Total Paid' : 'Total Due on Delivery';
+  const addr = order.address || {};
+
+  return new Promise((resolve, reject) => {
+    const doc = new PDFDocument({ size: 'A4', margin: 50 });
+    const chunks = [];
+    doc.on('data', (c) => chunks.push(c));
+    doc.on('end', () => resolve(Buffer.concat(chunks)));
+    doc.on('error', reject);
+
+    doc.fillColor('#F5A800').font('Helvetica-Bold').fontSize(22).text('ABC Store', { align: 'center' });
+    doc.fillColor('#666').font('Helvetica').fontSize(10).text('ABC FC · Lion of the North', { align: 'center' });
+    doc.moveDown(1.2);
+
+    doc.fillColor('#111').font('Helvetica-Bold').fontSize(16).text(heading);
+    doc.fillColor('#444').font('Helvetica').fontSize(10);
+    doc.text(`Order Number: ${order.orderNum}`);
+    doc.text(`Date: ${new Date(order.createdAt || Date.now()).toLocaleDateString('en-ZA', { day: '2-digit', month: 'long', year: 'numeric' })}`);
+    doc.moveDown(1);
+
+    doc.fillColor('#111').font('Helvetica-Bold').fontSize(11).text('Billed To');
+    doc.fillColor('#444').font('Helvetica').fontSize(10);
+    doc.text(order.name);
+    doc.text(order.email);
+    if (order.phone) doc.text(order.phone);
+    doc.moveDown(0.6);
+
+    doc.fillColor('#111').font('Helvetica-Bold').fontSize(11).text('Deliver To');
+    doc.fillColor('#444').font('Helvetica').fontSize(10);
+    doc.text(addr.line1 || '');
+    if (addr.line2) doc.text(addr.line2);
+    doc.text(`${addr.city || ''}, ${addr.postal || ''}`);
+    doc.text(`${addr.province || ''}, South Africa`);
+    doc.moveDown(1.2);
+
+    const tableTop = doc.y;
+    doc.fillColor('#111').font('Helvetica-Bold').fontSize(10);
+    doc.text('Product', 50, tableTop, { width: 220 });
+    doc.text('Size', 270, tableTop, { width: 80 });
+    doc.text('Qty', 350, tableTop, { width: 50 });
+    doc.text('Total', 420, tableTop, { width: 100, align: 'right' });
+    doc.moveDown(0.5);
+    doc.strokeColor('#ccc').moveTo(50, doc.y).lineTo(520, doc.y).stroke();
+    doc.moveDown(0.4);
+
+    doc.fillColor('#333').font('Helvetica').fontSize(10);
+    for (const item of order.items) {
+      const y = doc.y;
+      doc.text(item.name, 50, y, { width: 220 });
+      doc.text(item.size, 270, y, { width: 80 });
+      doc.text(String(item.qty), 350, y, { width: 50 });
+      doc.text(`R ${(item.price * item.qty).toFixed(2)}`, 420, y, { width: 100, align: 'right' });
+      doc.moveDown(0.6);
+    }
+    doc.moveDown(0.3);
+    doc.strokeColor('#ccc').moveTo(50, doc.y).lineTo(520, doc.y).stroke();
+    doc.moveDown(0.6);
+
+    doc.fillColor('#444').font('Helvetica').fontSize(10);
+    doc.text(`Subtotal: R ${order.subtotal.toFixed(2)}`, { align: 'right' });
+    doc.text(`Delivery: ${order.delivery === 0 ? 'FREE' : 'R ' + order.delivery.toFixed(2)}`, { align: 'right' });
+    doc.moveDown(0.3);
+    doc.fillColor('#F5A800').font('Helvetica-Bold').fontSize(13);
+    doc.text(`${totalLabel}: R ${order.total.toFixed(2)}`, { align: 'right' });
+
+    doc.moveDown(1.5);
+    doc.fillColor('#888').font('Helvetica').fontSize(9);
+    doc.text('Thank you for supporting ABC FC — Lion of the North!', { align: 'center' });
+    doc.text(`Questions? ${SUPPORT_EMAIL} · ${SUPPORT_PHONE}`, { align: 'center' });
+
+    doc.end();
+  });
+}
+
+async function sendInvoice(order) {
   const RESEND_KEY = process.env.RESEND_API_KEY;
-  if (!RESEND_KEY) return Promise.resolve(false);
+  if (!RESEND_KEY) return false;
   const https = require('https');
 
   const isPending = order.status === 'pending_payment';
@@ -136,14 +215,23 @@ function sendInvoice(order) {
       ? `Payment Received — Your ABC Store Order ${order.orderNum}`
       : `Your ABC Store Order — ${order.orderNum}`;
 
+  let attachments;
+  try {
+    const pdf = await generateInvoicePDF(order);
+    attachments = [{ filename: `ABC-Store-Invoice-${order.orderNum}.pdf`, content: pdf.toString('base64') }];
+  } catch (e) {
+    console.error('[invoice] PDF generation failed:', e.message);
+  }
+
   const from = process.env.EMAIL_FROM || 'ABC Store <onboarding@resend.dev>';
   const payload = JSON.stringify({
     from,
     to: [order.email],
-    bcc: ['tshibalo.lucas@gmail.com'],
+    bcc: [SUPPORT_EMAIL],
     reply_to: SUPPORT_EMAIL,
     subject,
     html: generateInvoiceHTML(order),
+    ...(attachments ? { attachments } : {}),
   });
   return new Promise((resolve) => {
     const req = https.request({
@@ -155,4 +243,4 @@ function sendInvoice(order) {
   });
 }
 
-module.exports = { generateInvoiceHTML, sendInvoice };
+module.exports = { generateInvoiceHTML, generateInvoicePDF, sendInvoice };

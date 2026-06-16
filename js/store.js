@@ -1090,30 +1090,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (bar) bar.style.display = 'none';
   });
 
-  // Guest / Login toggle
-  document.getElementById('toggle-guest')?.addEventListener('click', () => {
-    document.getElementById('toggle-guest')?.classList.add('active');
-    document.getElementById('toggle-login')?.classList.remove('active');
-    document.getElementById('guest-fields').style.display = '';
-    document.getElementById('login-fields').style.display = 'none';
-  });
-  document.getElementById('toggle-login')?.addEventListener('click', () => {
-    document.getElementById('toggle-login')?.classList.add('active');
-    document.getElementById('toggle-guest')?.classList.remove('active');
-    document.getElementById('login-fields').style.display = '';
-    document.getElementById('guest-fields').style.display = 'none';
-  });
-  document.getElementById('switch-to-guest')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    document.getElementById('toggle-guest')?.click();
-  });
-
-  // Sign In is not built yet — give honest feedback instead of a dead button
-  document.getElementById('login-submit-btn')?.addEventListener('click', () => {
-    showToast('Accounts are coming soon — please continue as guest', true);
-    document.getElementById('toggle-guest')?.click();
-  });
-
   // Escape key closes modals
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {

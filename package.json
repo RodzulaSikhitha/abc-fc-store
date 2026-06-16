@@ -4,6 +4,7 @@
   "private": true,
   "description": "ABC FC official store — static storefront + Vercel serverless functions",
   "dependencies": {
-    "@neondatabase/serverless": "^0.9.4"
+    "@neondatabase/serverless": "^0.9.4",
+    "pdfkit": "^0.19.1"
   }
 }
