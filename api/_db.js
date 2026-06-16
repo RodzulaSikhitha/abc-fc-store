@@ -1,10 +1,20 @@
 // Shared Neon Postgres helpers used by /api/orders and /api/payment-webhook.
 
+// Vercel's Neon integration prefixes its auto-created env vars with the
+// project name (e.g. "abcfcstore_DATABASE_URL") instead of plain
+// "DATABASE_URL". Accept either so we don't depend on that naming.
+function findDatabaseUrl() {
+  if (process.env.DATABASE_URL) return process.env.DATABASE_URL;
+  const key = Object.keys(process.env).find((k) => /_DATABASE_URL$/.test(k));
+  return key ? process.env[key] : null;
+}
+
 function getSql() {
-  if (!process.env.DATABASE_URL) return null;
+  const url = findDatabaseUrl();
+  if (!url) return null;
   try {
     const { neon } = require('@neondatabase/serverless');
-    return neon(process.env.DATABASE_URL);
+    return neon(url);
   } catch (_) {
     return null;
   }
