@@ -14,8 +14,9 @@ CREATE TABLE IF NOT EXISTS orders (
   subtotal    numeric(10,2),
   delivery    numeric(10,2),
   total       numeric(10,2),
-  payment     text,                        -- 'cod' for now
-  status      text DEFAULT 'received',
+  payment     text,                        -- 'cod' | 'online' (iKhokha)
+  status      text DEFAULT 'received',     -- 'received' | 'pending_payment' | 'paid' | 'failed' | 'cancelled'
+  paylink_id  text,                        -- iKhokha paylinkID, set for 'online' orders
   ip          text,                        -- for basic abuse rate-limiting
   created_at  timestamptz DEFAULT now()
 );
