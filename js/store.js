@@ -11,157 +11,14 @@ const PRODUCTS = [
     id: 'p1',
     name: '2025/26 Home Kit Jersey',
     category: ['kits'],
-    price: 199,
+    price: 199.99,
     oldPrice: null,
     badge: 'new',
-    description: 'Official ABC FC home jersey for the 2025/26 championship season. Gold and black colourway with the Lion of the North crest and a limited championship badge. 100% polyester moisture-wicking fabric.',
+    description: 'Official ABC FC home jersey for the 2025/26 championship season. Navy with red trim, gold "Lion of the North" crest. 100% polyester moisture-wicking fabric.',
     sizes: ['XS','S','M','L','XL','XXL'],
     soldOut: false,
-    image: null, // SVG placeholder used
-    svgColor: '#F5A800',
-  },
-  {
-    id: 'p2',
-    name: '2025/26 Away Kit Jersey',
-    category: ['kits'],
-    price: 199,
-    oldPrice: null,
-    badge: 'new',
-    description: 'Official ABC FC away jersey for the 2025/26 season. Black colourway with gold trim and Lion of the North crest. Moisture-wicking polyester.',
-    sizes: ['XS','S','M','L','XL','XXL'],
-    soldOut: false,
-    image: null,
-    svgColor: '#1a1a1a',
-  },
-  {
-    id: 'p3',
-    name: '2025/26 GK Jersey',
-    category: ['kits'],
-    price: 189,
-    oldPrice: null,
-    badge: null,
-    description: 'Official goalkeeper jersey with reinforced elbows and padded chest. Official ABC FC branding.',
-    sizes: ['S','M','L','XL','XXL'],
-    soldOut: false,
-    image: null,
-    svgColor: '#2d5a1b',
-  },
-  {
-    id: 'p4',
-    name: '2025/26 Home Kit — Kids',
-    category: ['kits','kids'],
-    price: 149,
-    oldPrice: null,
-    badge: null,
-    description: 'Kids\' official home jersey. Same championship design as the adult kit, sized for ages 4–14. Lightweight and durable.',
-    sizes: ['4–6','6–8','8–10','10–12','12–14'],
-    soldOut: false,
-    image: null,
-    svgColor: '#F5A800',
-  },
-  {
-    id: 'p5',
-    name: '2025/26 Home Kit — Ladies',
-    category: ['kits','ladies'],
-    price: 189,
-    oldPrice: null,
-    badge: null,
-    description: 'Ladies\' fitted home jersey with the full championship badge. Tailored cut, moisture-wicking fabric.',
-    sizes: ['XS','S','M','L','XL'],
-    soldOut: false,
-    image: null,
-    svgColor: '#F5A800',
-  },
-  {
-    id: 'p6',
-    name: 'Training Tracksuit',
-    category: ['training'],
-    price: 179,
-    oldPrice: 229,
-    badge: 'sale',
-    description: 'Full ABC FC training tracksuit — zip-up jacket and matching pants. Gold/black colourway with embroidered crest.',
-    sizes: ['S','M','L','XL','XXL'],
-    soldOut: false,
-    image: null,
-    svgColor: '#111',
-  },
-  {
-    id: 'p7',
-    name: 'Training T-Shirt',
-    category: ['training'],
-    price: 129,
-    oldPrice: null,
-    badge: null,
-    description: 'Lightweight training tee with ABC FC print. Breathable mesh panels, moisture-wicking.',
-    sizes: ['XS','S','M','L','XL','XXL'],
-    soldOut: false,
-    image: null,
-    svgColor: '#222',
-  },
-  {
-    id: 'p8',
-    name: 'Supporters Scarf',
-    category: ['accessories'],
-    price: 99,
-    oldPrice: null,
-    badge: null,
-    description: 'Woven supporters scarf in official gold and black. "Lion of the North" text embroidered. One size fits all.',
-    sizes: ['One Size'],
-    soldOut: false,
-    image: null,
-    svgColor: '#F5A800',
-  },
-  {
-    id: 'p9',
-    name: 'Snapback Cap',
-    category: ['accessories'],
-    price: 129,
-    oldPrice: null,
-    badge: null,
-    description: 'Adjustable snapback cap with embroidered ABC FC crest. One size fits most.',
-    sizes: ['One Size'],
-    soldOut: false,
-    image: null,
-    svgColor: '#0d0d0d',
-  },
-  {
-    id: 'p10',
-    name: 'Supporters Polo',
-    category: ['training'],
-    price: 159,
-    oldPrice: null,
-    badge: null,
-    description: 'Smart supporters polo shirt with ABC FC badge. Suitable for match days and casual wear.',
-    sizes: ['S','M','L','XL','XXL'],
-    soldOut: false,
-    image: null,
-    svgColor: '#c98700',
-  },
-  {
-    id: 'p11',
-    name: 'Away Kit Junior',
-    category: ['kits','kids'],
-    price: 149,
-    oldPrice: null,
-    badge: null,
-    description: 'Kids\' away kit in black and gold. Sizes for ages 4–14.',
-    sizes: ['4–6','6–8','8–10','10–12','12–14'],
-    soldOut: true,
-    image: null,
-    svgColor: '#1a1a1a',
-  },
-  {
-    id: 'p12',
-    name: 'Gym Bag',
-    category: ['accessories'],
-    price: 179,
-    oldPrice: null,
-    badge: null,
-    description: 'Large ABC FC branded gym/kit bag with shoulder strap and front zip pocket. Gold/black.',
-    sizes: ['One Size'],
-    soldOut: false,
-    image: null,
-    svgColor: '#141414',
+    image: 'images/products/home-jersey.jpeg',
+    svgColor: '#0c1830',
   },
   {
     id: 'p13',
@@ -519,19 +376,19 @@ const INFO = {
   shipping: {
     title: 'Shipping & Delivery',
     html: `
-      <p>We currently deliver <strong>within Limpopo only</strong>. You can pay securely online by card or Instant EFT (via iKhokha), or choose <strong>Cash on Delivery</strong> — you pay when your order arrives. Nationwide delivery is coming soon.</p>
+      <p>We deliver <strong>nationwide across South Africa</strong>. You can pay securely online by card or Instant EFT (via iKhokha), or choose <strong>Cash on Delivery</strong> — you pay when your order arrives.</p>
       <h2>Delivery Times</h2>
       <ul>
         <li>Within Limpopo: typically <strong>2–5 business days</strong>.</li>
-        <li>Remote areas may take slightly longer.</li>
+        <li>Other provinces: typically <strong>3–7 business days</strong>.</li>
       </ul>
       <h2>Delivery Fees</h2>
       <ul>
-        <li><strong>FREE</strong> on orders over <strong>R500</strong>.</li>
-        <li>Flat <strong>R99</strong> on orders under R500.</li>
-        <li>Pay online (card / Instant EFT) at checkout, or Cash on Delivery (Limpopo).</li>
+        <li><strong>R50</strong> flat rate within Limpopo.</li>
+        <li><strong>R75</strong> flat rate to other provinces.</li>
+        <li>Pay online (card / Instant EFT) at checkout, or Cash on Delivery — available nationwide.</li>
       </ul>
-      <p>You'll receive your invoice by email when you order, and we'll be in touch to arrange delivery. Outside Limpopo? Contact us and we'll let you know as soon as we deliver to your area.</p>`,
+      <p>You'll receive your invoice by email when you order, and we'll be in touch to arrange delivery.</p>`,
   },
   returns: {
     title: 'Returns & Exchanges',
@@ -579,11 +436,11 @@ const INFO = {
     title: 'Frequently Asked Questions',
     html: `
       <h2>How can I pay?</h2>
-      <p>You can pay securely online by card or Instant EFT via iKhokha, or choose <strong>Cash on Delivery</strong> within Limpopo — you pay when your order arrives.</p>
+      <p>You can pay securely online by card or Instant EFT via iKhokha, or choose <strong>Cash on Delivery</strong> — you pay when your order arrives.</p>
       <h2>Where do you deliver?</h2>
-      <p>We currently deliver within <strong>Limpopo</strong> only. If you're elsewhere, contact us and we'll let you know when we reach your area.</p>
+      <p>We deliver <strong>nationwide across South Africa</strong> — R50 within Limpopo, R75 to other provinces.</p>
       <h2>How long does delivery take?</h2>
-      <p>Typically 2–5 business days within Limpopo. See our Shipping & Delivery page for details.</p>
+      <p>Typically 2–5 business days within Limpopo, 3–7 business days elsewhere. See our Shipping & Delivery page for details.</p>
       <h2>Can I track my order?</h2>
       <p>Yes — use the Track Order page with your order number and the email you ordered with, or contact us and we'll update you.</p>
       <h2>What's your returns policy?</h2>
@@ -626,7 +483,7 @@ const INFO = {
       <h2>Payment</h2>
       <ul>
         <li>You may pay securely online by card or Instant EFT, processed by iKhokha — we never see or store your card details.</li>
-        <li>Alternatively, choose <strong>Cash on Delivery</strong> within Limpopo — you pay when your order is delivered.</li>
+        <li>Alternatively, choose <strong>Cash on Delivery</strong> — you pay when your order is delivered, nationwide.</li>
       </ul>
       <h2>Delivery & Risk</h2>
       <p>Delivery timeframes are estimates. Risk in the goods passes to you on delivery.</p>
@@ -939,7 +796,7 @@ function showConfirmPage(orderData, apiResult) {
           <div style="margin-top:16px;padding:14px;background:var(--gold-faint);border:1px solid rgba(245,168,0,0.2);border-radius:var(--radius-md);">
             <p style="font-family:var(--font-sub);font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;">Cash on Delivery</p>
             <p style="font-size:13px;color:var(--text-muted);line-height:1.8;">
-              Pay <strong>${formatZAR(total)}</strong> in cash when your order is delivered (Limpopo).
+              Pay <strong>${formatZAR(total)}</strong> in cash when your order is delivered.
               We'll be in touch to arrange delivery.
             </p>
           </div>
