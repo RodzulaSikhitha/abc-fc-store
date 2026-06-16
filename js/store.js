@@ -46,6 +46,19 @@ const PRODUCTS = [
     image: 'images/products/red-hooped-jersey.jpeg',
     svgColor: '#b3122b',
   },
+  {
+    id: 'p13',
+    name: 'Test Item (R1)',
+    category: ['accessories'],
+    price: 1,
+    oldPrice: null,
+    badge: null,
+    description: 'A R1 test item for trying out the checkout and payment flow. Not a real product.',
+    sizes: ['One Size'],
+    soldOut: false,
+    image: null,
+    svgColor: '#444',
+  },
 ];
 
 // ── State ──────────────────────────────────────────────────
