@@ -46,19 +46,6 @@ const PRODUCTS = [
     image: 'images/products/red-hooped-jersey.jpeg',
     svgColor: '#b3122b',
   },
-  {
-    id: 'p13',
-    name: 'Test Item (R1)',
-    category: ['accessories'],
-    price: 1,
-    oldPrice: null,
-    badge: null,
-    description: 'A R1 test item for trying out the checkout and payment flow. Not a real product.',
-    sizes: ['One Size'],
-    soldOut: false,
-    image: null,
-    svgColor: '#444',
-  },
 ];
 
 // ── State ──────────────────────────────────────────────────
@@ -611,7 +598,7 @@ function buildCheckoutPage() {
 
   const subtotal = cartTotal();
   const province = document.getElementById('province')?.value;
-  const delivery = isTestOnlyCart() ? 0 : deliveryFee(province);
+  const delivery = deliveryFee(province);
   const total = subtotal + delivery;
 
   const subtotalEl = document.getElementById('ot-subtotal');
@@ -625,11 +612,6 @@ function buildCheckoutPage() {
 // Delivery rule: flat rate by destination — R50 within Limpopo, R75 elsewhere in SA.
 function deliveryFee(province) {
   return province === 'Limpopo' ? 50 : 75;
-}
-
-// The R1 test item is for trying out checkout/payment — no delivery fee.
-function isTestOnlyCart() {
-  return cart.length === 1 && cart[0].id === 'p13';
 }
 
 function validateCheckout() {

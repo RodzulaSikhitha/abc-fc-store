@@ -83,9 +83,7 @@ function buildOrder(body) {
     items.push({ id: product.id, name: product.name, size, qty, price: product.price });
   }
 
-  // The R1 test item is for trying out checkout/payment — no delivery fee.
-  const isTestOrder = items.length === 1 && items[0].id === 'p13';
-  const delivery = isTestOrder ? 0 : deliveryFee(address.province);
+  const delivery = deliveryFee(address.province);
   return {
     order: {
       orderNum: newOrderNum(),
