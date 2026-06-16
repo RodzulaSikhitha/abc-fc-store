@@ -27,6 +27,11 @@ const ikhokha = require('./_ikhokha');
 const str = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
 const isEmail = (v) => typeof v === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) && v.length <= 200;
 
+const SA_PROVINCES = [
+  'Limpopo', 'Gauteng', 'KwaZulu-Natal', 'Western Cape', 'Eastern Cape',
+  'Mpumalanga', 'North West', 'Free State', 'Northern Cape',
+];
+
 // Crockford base32 (no I, L, O, U) → unambiguous order numbers
 const B32 = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
 function newOrderNum() {
@@ -57,8 +62,7 @@ function buildOrder(body) {
     province: str(addr.province, 40),
   };
   if (!address.line1 || !address.city || !address.postal) return { error: 'A complete delivery address is required' };
-  // Delivery is Limpopo-only for now, regardless of payment method.
-  if (address.province !== 'Limpopo') return { error: 'We currently deliver within Limpopo only' };
+  if (!SA_PROVINCES.includes(address.province)) return { error: 'Please select a valid province' };
 
   if (!Array.isArray(body.items) || body.items.length === 0) return { error: 'Your cart is empty' };
   if (body.items.length > 50) return { error: 'Too many items' };
@@ -78,7 +82,9 @@ function buildOrder(body) {
     items.push({ id: product.id, name: product.name, size, qty, price: product.price });
   }
 
-  const delivery = deliveryFee(subtotal);
+  // The R1 test item is for trying out checkout/payment — no delivery fee.
+  const isTestOrder = items.length === 1 && items[0].id === 'p13';
+  const delivery = isTestOrder ? 0 : deliveryFee(address.province);
   return {
     order: {
       orderNum: newOrderNum(),
