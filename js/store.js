@@ -99,6 +99,19 @@ const PRODUCTS = [
     svgColor: '#0c1830',
   },
   {
+    id: 'p8',
+    name: 'Away Jersey (Red & Black)',
+    category: ['kits'],
+    price: 199.99,
+    oldPrice: null,
+    badge: 'new',
+    description: 'Official ABC FC away jersey — bold red with black raglan shoulder panels and gold "Lion of the North" crest. Short-sleeve, moisture-wicking polyester.',
+    sizes: ['XS','S','M','L','XL','XXL'],
+    soldOut: false,
+    image: 'images/products/away-jersey-red.jpeg',
+    svgColor: '#b3122b',
+  },
+  {
     id: 'p13',
     name: 'Test Item (R1)',
     category: ['accessories'],
@@ -672,6 +685,21 @@ function buildCheckoutPage() {
   if (subtotalEl) subtotalEl.textContent = formatZAR(subtotal);
   if (deliveryEl) deliveryEl.textContent = formatZAR(delivery);
   if (totalEl) totalEl.textContent = formatZAR(total);
+
+  // COD is only available for Limpopo deliveries — show/hide the option automatically.
+  const codOption = document.getElementById('cod-payment-option');
+  const codNote   = document.getElementById('cod-province-note');
+  const onlineRadio = document.querySelector('input[name="payment"][value="online"]');
+  const codRadio    = document.querySelector('input[name="payment"][value="cod"]');
+  if (codOption) {
+    const isLimpopo = province === 'Limpopo';
+    codOption.style.display = isLimpopo ? '' : 'none';
+    if (codNote) codNote.style.display = (!isLimpopo && province) ? '' : 'none';
+    // If COD was selected but province is no longer Limpopo, switch to online.
+    if (!isLimpopo && codRadio && codRadio.checked && onlineRadio) {
+      onlineRadio.checked = true;
+    }
+  }
 }
 
 // Delivery rule: flat rate by destination — R50 within Limpopo, R75 elsewhere in SA.
@@ -697,6 +725,11 @@ function validateCheckout() {
   if (!city) { showToast('Please enter your city or town'); return false; }
   if (!postal) { showToast('Please enter your postal code'); return false; }
   if (!province) { showToast('Please select your province'); return false; }
+  const selectedPayment = document.querySelector('input[name="payment"]:checked')?.value;
+  if (selectedPayment === 'cod' && province !== 'Limpopo') {
+    showToast('Cash on Delivery is only available for Limpopo deliveries. Please pay online.');
+    return false;
+  }
   if (cart.length === 0) { showToast('Your cart is empty'); return false; }
   return true;
 }

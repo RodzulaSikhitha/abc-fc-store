@@ -64,6 +64,7 @@ function buildOrder(body) {
   };
   if (!address.line1 || !address.city || !address.postal) return { error: 'A complete delivery address is required' };
   if (!SA_PROVINCES.includes(address.province)) return { error: 'Please select a valid province' };
+  if (payment === 'cod' && address.province !== 'Limpopo') return { error: 'Cash on Delivery is only available for deliveries within Limpopo. Please pay online.' };
 
   if (!Array.isArray(body.items) || body.items.length === 0) return { error: 'Your cart is empty' };
   if (body.items.length > 50) return { error: 'Too many items' };
